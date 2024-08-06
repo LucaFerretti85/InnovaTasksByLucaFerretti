@@ -1,0 +1,62 @@
+﻿@page "/budget"
+@rendermode InteractiveServer
+@using System.ComponentModel.DataAnnotations
+@inject IBudgetService budgetService
+
+<h3>Calcolo del Budget Residuo</h3>
+
+<EditForm Model="@dateModel" OnValidSubmit="HandleValidSubmit" FormName="budgetForm">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div>
+        <label for="startDate">Data Inizio:</label>
+        <InputDate id="startDate" @bind-Value="dateModel.StartDate" />
+        <ValidationMessage For="@(() => dateModel.StartDate)" />
+    </div>
+
+    <div>
+        <label for="endDate">Data Fine:</label>
+        <InputDate id="endDate" @bind-Value="dateModel.EndDate" />
+        <ValidationMessage For="@(() => dateModel.EndDate)" />
+    </div>
+
+    <button type="submit">Calcola Budget Residuo</button>
+</EditForm>
+<!--
+<label for="startDate">Data Inizio:</label>
+<InputDate id="startDate" @bind-Value="dateModel.StartDate" />
+
+<label for="endDate">Data Fine:</label>
+<InputDate id="endDate" @bind-Value="dateModel.EndDate" />
+
+<button @onclick="HandleValidSubmit">Calcola Budget Residuo</button>
+-->
+@if (showResult)
+{
+    <div>
+        <h4>Budget Residuo: @budgetResiduo.ToString("C")</h4>
+    </div>
+}
+
+@code {
+    private bool showResult = false;
+    private decimal budgetResiduo;
+    private DateModel dateModel = new DateModel();
+
+    public class DateModel
+        {
+        [Required(ErrorMessage = "La data di inizio è obbligatoria")]
+        public DateTime StartDate { get; set; } = DateTime.Today;
+
+        [Required(ErrorMessage = "La data di fine è obbligatoria")]
+        public DateTime EndDate { get; set; } = DateTime.Today;
+    }
+
+    private void HandleValidSubmit()
+    {
+        Console.WriteLine($"StartDate: {dateModel.StartDate}, EndDate: {dateModel.EndDate}");
+        budgetResiduo = budgetService.CalcolaResiduoBudget(dateModel.StartDate, dateModel.EndDate);
+        showResult = true;
+    }
+}

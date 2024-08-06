@@ -1,0 +1,80 @@
+﻿@page "/clienti"
+@rendermode InteractiveServer
+
+@inject IClientiService clientiService
+
+<h3>Ricerca Clienti</h3>
+
+<!-- Form per cercare clienti -->
+<EditForm Model="input" OnSubmit="HandleSubmit" FormName="CustomerForm">
+
+    <div class="form-group">
+        <label for="regione">Regione:</label>
+        <InputSelect id="regione" @bind-Value="input.Regione" class="form-control">
+            <option value="">-- Seleziona --</option>
+            @foreach (var regione in listaRegioni)
+            {
+                <option value="@regione">@regione</option>
+            }
+        </InputSelect>
+    </div>
+
+    <div class="form-group">
+        <label for="citta">Città:</label>
+        <InputSelect id="citta" @bind-Value="input.Citta" class="form-control">
+            <option value="">-- Seleziona --</option>
+            @foreach (var citta in listaCitta)
+            {
+                <option value="@citta">@citta</option>
+            }
+        </InputSelect>
+    </div>
+
+    <button type="submit">Cerca</button>
+</EditForm>
+
+<!-- Tabella dei clienti -->
+@if (listaClienti != null)
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Ragione Sociale</th>
+                <th>Mail</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var cliente in listaClienti)
+            {
+                <tr>
+                    <td>@cliente?.RagioneSociale</td>
+                    <td>@cliente?.Mail</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    List<string?> listaRegioni = new List<string?>();
+    List<string?> listaCitta = new List<string?>();
+    List<Models.Clienti> listaClienti = new List<Models.Clienti>();
+
+    class SearchInput
+    {
+        public string? Regione { get; set; }
+        public string? Citta { get; set; }
+    }
+    private SearchInput input = new SearchInput();  
+
+    protected override void OnInitialized()
+    {
+        listaRegioni = clientiService.GetRegioni();
+        listaCitta = clientiService.GetCitta();
+    }
+
+    private void HandleSubmit()
+    {
+        listaClienti = clientiService.FiltraClienti(input.Regione, input?.Citta);
+    }
+}

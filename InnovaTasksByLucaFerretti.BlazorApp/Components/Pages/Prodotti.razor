@@ -1,0 +1,124 @@
+﻿@page "/prodotti"
+@rendermode InteractiveServer
+
+@inject IProdottiService prodottiService
+
+<h3>Gestione Prodotti</h3>
+
+<!-- Form per aggiungere o modificare un prodotto -->
+@if (editProduct != null)
+{
+    <EditForm Model="editProduct" OnValidSubmit="HandleValidSubmit" FormName="CRUDForm">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div>
+            <label for="name">Nome:</label>
+            <InputText id="name" @bind-Value="editProduct.Nome" />
+            <ValidationMessage For="@(() => editProduct.Nome)" />
+        </div>
+
+        <div>
+            <label for="description">Descrizione:</label>
+            <InputText id="description" @bind-Value="editProduct.Descrizione" />
+            <ValidationMessage For="@(() => editProduct.Descrizione)" />
+        </div>
+
+        <div>
+            <label for="price">Prezzo:</label>
+            <InputNumber id="price" @bind-Value="editProduct.Prezzo" />
+            <ValidationMessage For="@(() => editProduct.Prezzo)" />
+        </div>
+
+        <button type="submit">Salva</button>
+        <button @onclick="HandleCancel">Annulla</button>
+    </EditForm>
+}
+
+<!-- Tabella dei prodotti -->
+@if (products != null)
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Nome</th>
+                <th>Descrizione</th>
+                <th>Prezzo</th>
+                <th>Azioni</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var product in products)
+            {
+                <tr>
+                    <td>@product?.Nome</td>
+                    <td>@product?.Descrizione</td>
+                    <td>@product?.Prezzo.ToString("C")</td>
+                    <td>
+                        <button @onclick="() => EditProduct(product?.Id ?? 0)">Modifica</button>
+                        <button @onclick="() => DeleteProduct(product?.Id ?? 0)">Elimina</button>
+                    </td>
+                </tr>
+            }
+            <tr>
+                <td>
+                    <button @onclick="() => CreateProduct()">Aggiungi Nuovo</button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Models.Prodotti> products = new List<Models.Prodotti>();
+    private Models.Prodotti? editProduct;
+
+    protected override void OnInitialized()
+    {
+        UpdateProductsList();
+        //products = prodottiService.ReadProdotto(1);
+    }
+
+    private void UpdateProductsList()
+    {
+        products = prodottiService.ReadAllProdotti();
+    }
+
+    private void HandleValidSubmit()
+    {
+        if (editProduct?.Id == 0)
+        {
+            prodottiService.CreateProdotto(editProduct);
+        }
+        else
+        {
+            if (editProduct != null)
+                prodottiService.UpdateProdotto(editProduct);
+        }
+
+        editProduct = null;
+        UpdateProductsList();
+    }
+
+    private void EditProduct(int id)
+    {
+        editProduct = products.FirstOrDefault(p => p?.Id == id);
+    }
+
+    private void CreateProduct()
+    {
+        editProduct = new Models.Prodotti();
+    }
+
+    private void DeleteProduct(int id)
+    {
+        prodottiService.DeleteProdotto(id);
+        UpdateProductsList();
+    }
+
+    private void HandleCancel()
+    {
+        editProduct = null;
+    }
+}
+
